@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  # Replace these targets with your application's /metrics endpoint to scrape a
+  # real deployment instead of the demo.
+  - job_name: alloydb-connector
+    static_configs:
+      - targets:
+          - demo-orders-primary:2223
+          - demo-orders-read-pool:2223
+          - demo-analytics-primary:2223

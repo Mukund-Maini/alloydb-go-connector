@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connector Metrics Setup</title>
+<!--
+Copyright 2026 Google LLC
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at https://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied.
+-->
+<style>
+:root {
+  --page: #0f1423; --shell: #fff; --canvas: #f1efec; --ink: #10121f;
+  --muted: #7c7f8c; --sky: #94cddc; --sand: #dbb9a2; --cream: #faf6f1;
+  --orange: #ff4f1f; --teal: #5ccfdc; --r: 28px;
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--page); color: var(--ink); font: 15px/1.4 "Inter", "Segoe UI", system-ui, sans-serif;
+  min-height: 100vh; display: grid; place-items: center; padding: 32px 16px; }
+.shell { display: grid; grid-template-columns: 200px 1fr; width: min(1240px, 100%); background: var(--shell);
+  border-radius: 40px; overflow: hidden; }
+nav { padding: 32px 24px; display: flex; flex-direction: column; gap: 6px; }
+.logo { display: inline-block; align-self: flex-start; background: var(--sand); border-radius: 12px;
+  padding: 6px 12px; font-weight: 700; font-size: 20px; letter-spacing: -.5px; margin-bottom: 40px; }
+nav a { padding: 10px 14px; border-radius: 12px; color: var(--ink); text-decoration: none; font-size: 14px; }
+nav a.on { background: var(--canvas); font-weight: 600; }
+nav small { margin-top: auto; color: var(--muted); font-size: 12px; }
+main { background: var(--canvas); border-radius: 40px 0 0 40px; padding: 24px; display: grid; gap: 20px;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+.card { border-radius: var(--r); padding: 28px; }
+.dark { background: var(--ink); color: #fff; }
+.sky { background: linear-gradient(180deg, var(--sky), #cfe6ec); }
+.sand { background: var(--sand); grid-column: 1 / -1; display: grid; grid-template-columns: 200px 1fr; gap: 20px; align-items: center; }
+h2 { font-size: 22px; font-weight: 600; letter-spacing: -.3px; margin-bottom: 4px; }
+.sub { font-size: 13px; opacity: .7; margin-bottom: 20px; }
+.big { display: flex; gap: 28px; margin: 8px 0 22px; }
+.big b { display: block; font-size: 40px; font-weight: 500; letter-spacing: -1.5px; line-height: 1; }
+.big span { font-size: 12px; opacity: .6; }
+.checks { display: grid; gap: 14px; list-style: none; padding: 0; }
+.checks li { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.dot { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--orange); font-size: 15px; flex: none; }
+.dot.t { background: var(--teal); } .dot.s { background: var(--sand); }
+.list { display: grid; gap: 10px; }
+.row { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,.55); border-radius: 18px;
+  padding: 12px 16px; cursor: pointer; transition: background .15s; }
+.row:hover { background: rgba(255,255,255,.8); }
+.row input { position: absolute; opacity: 0; }
+.sw { width: 40px; height: 24px; border-radius: 12px; background: rgba(16,18,31,.25); position: relative; flex: none; transition: background .15s; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.row input:checked + .sw { background: var(--ink); }
+.row input:checked + .sw::after { transform: translateX(16px); }
+.row input:focus-visible + .sw { outline: 3px solid var(--orange); outline-offset: 2px; }
+.row .t { flex: 1; min-width: 0; }
+.row .t b { display: block; font-size: 14px; font-weight: 600; }
+.row .t i { font-style: normal; font-size: 12px; opacity: .65; }
+.tag { font-size: 11px; background: var(--ink); color: #fff; border-radius: 8px; padding: 3px 8px; flex: none; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 14px; }
+.tile { background: var(--cream); border-radius: 20px; padding: 14px 16px 16px; box-shadow: 0 12px 24px -12px rgba(80,50,30,.25); }
+.ico { width: 34px; height: 34px; border-radius: 10px; background: var(--orange); color: #fff; display: grid; place-items: center; margin: -26px 0 14px; font-size: 15px; }
+.tile span { font-size: 13px; } .tile b { display: block; font-size: 34px; font-weight: 500; letter-spacing: -1.5px; margin-top: 8px; }
+.sand h2 { margin-bottom: 8px; } .sand p { font-size: 13px; opacity: .75; }
+.out { grid-column: 1 / -1; background: var(--shell); }
+.tabs { display: flex; gap: 22px; margin-bottom: 14px; align-items: center; }
+.tabs [role=tab] { background: none; border: 0; font: inherit; font-size: 18px; font-weight: 600; color: var(--muted); cursor: pointer; padding: 0 0 6px; border-bottom: 3px solid transparent; }
+.tabs [role=tab][aria-selected=true] { color: var(--ink); border-color: var(--orange); }
+.tabs .act { margin-left: auto; display: flex; gap: 8px; }
+.btn { background: var(--ink); color: #fff; border: 0; border-radius: 12px; padding: 9px 16px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn.cta { background: var(--orange); width: 100%; margin-top: 24px; padding: 13px 16px; font-size: 14px; }
+.btn.cta:disabled { opacity: .5; cursor: not-allowed; }
+.status { font-size: 13px; margin-top: 10px; min-height: 18px; }
+.status a { color: var(--teal); }
+.btn.ghost { background: var(--canvas); color: var(--ink); }
+.btn:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+pre { background: var(--ink); color: #e8eaf2; border-radius: 18px; padding: 18px 20px; overflow: auto; max-height: 340px;
+  font: 12.5px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace; }
+.note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; } nav { flex-direction: row; flex-wrap: wrap; padding: 20px; } .logo { margin: 0 12px 0 0; } nav small { display: none; }
+  main { grid-template-columns: 1fr; border-radius: 32px 32px 0 0; } .sand { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav>
+    <span class="logo">alloydb</span>
+    <a class="on" href="#">Setup</a>
+    <a href="#out">Output</a>
+    <a href="http://localhost:3000/d/alloydb-connector" target="_blank" rel="noopener">Grafana</a>
+    <small>Go Connector<br>OpenTelemetry metrics</small>
+  </nav>
+  <main>
+    <section class="card dark" aria-labelledby="sum">
+      <h2 id="sum">Selection</h2>
+      <p class="sub">Panels are generated only for what you keep on.</p>
+      <div class="big"><div><b id="nMetrics">6</b><span>Metrics</span></div><div><b id="nPanels">10</b><span>Panels</span></div></div>
+      <ul class="checks">
+        <li><span class="dot">✓</span><span><b>Dashboard JSON</b> for Grafana</span></li>
+        <li><span class="dot t">✓</span><span><b>Go snippet</b> drops the rest</span></li>
+        <li><span class="dot s">✓</span><span><b>Prometheus</b> queries included</span></li>
+      </ul>
+      <button class="btn cta" id="apply">Create dashboard in Grafana</button>
+      <p class="status" id="status" role="status"></p>
+    </section>
+
+    <section class="card sky" aria-labelledby="pick">
+      <h2 id="pick">Metrics</h2>
+      <p class="sub">Choose which connector metrics to expose and chart.</p>
+      <div class="list" id="list"></div>
+    </section>
+
+    <section class="card sand">
+      <div><h2>Instances</h2><p>Dashboard variables are generated from these labels.</p></div>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section class="card out" id="out">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-t="go">Go snippet</button>
+        <button role="tab" aria-selected="false" data-t="json">Dashboard JSON</button>
+        <div class="act">
+          <button class="btn ghost" id="copy">Copy</button>
+          <button class="btn" id="dl">Download</button>
+        </div>
+      </div>
+      <pre id="code" tabindex="0"></pre>
+      <p class="note" id="note"></p>
+    </section>
+  </main>
+</div>
+
+<script>
+const SCOPE = "cloud.google.com/go/alloydbconn";
+const F = 'alloydb_project_id=~"$project",alloydb_cluster_id=~"$cluster",alloydb_instance_id=~"$instance"';
+const DIAL = `alloydb_connector_dial_count_total{${F}}`;
+const DIALOK = DIAL.replace(/}$/, ',alloydb_status="success"}');
+const DIALHIT = DIAL.replace(/}$/, ',alloydb_cache_hit="true"}');
+const R = "[$__rate_interval]";
+const lat = q => `histogram_quantile(${q}, sum by (le) (rate(alloydb_connector_dial_duration_milliseconds_bucket{${F}}${R})))`;
+
+// Mirrors METRICS.md. Prometheus names follow the OTel Prometheus exporter.
+const METRICS = [
+  { id: "dial.count", name: "alloydb.connector.dial.count", type: "Counter", desc: "Dial attempts by status",
+    panels: [
+      { k: "stat", t: "Dial rate", e: `sum(rate(${DIAL}${R}))`, u: "ops" },
+      { k: "stat", t: "Dial success ratio", e: `sum(rate(${DIALOK}${R})) / sum(rate(${DIAL}${R}))`, u: "percentunit" },
+      { k: "ts", t: "Dial rate by status", e: `sum by (alloydb_status) (rate(${DIAL}${R}))`, l: "{{alloydb_status}}", u: "ops" },
+      { k: "ts", t: "Dial cache hit ratio", e: `sum by (alloydb_cluster_id, alloydb_instance_id) (rate(${DIALHIT}${R})) / sum by (alloydb_cluster_id, alloydb_instance_id) (rate(${DIAL}${R}))`, l: "{{alloydb_cluster_id}}/{{alloydb_instance_id}}", u: "percentunit" }] },
+  { id: "dial.duration", name: "alloydb.connector.dial.duration", type: "Histogram", desc: "Successful dial latency",
+    panels: [
+      { k: "stat", t: "p95 dial latency", e: lat(0.95), u: "ms" },
+      { k: "ts", t: "Dial latency percentiles", u: "ms", m: [["p50", lat(0.5)], ["p95", lat(0.95)], ["p99", lat(0.99)]] }] },
+  { id: "connections.open", name: "alloydb.connector.connections.open", type: "UpDownCounter", desc: "Open connections",
+    panels: [
+      { k: "stat", t: "Open connections", e: `sum(alloydb_connector_connections_open{${F}})`, u: "short" },
+      { k: "ts", t: "Open connections by instance", e: `sum by (alloydb_cluster_id, alloydb_instance_id, alloydb_auth_type) (alloydb_connector_connections_open{${F}})`, l: "{{alloydb_cluster_id}}/{{alloydb_instance_id}} ({{alloydb_auth_type}})", u: "short" }] },
+  { id: "bytes.sent", name: "alloydb.connector.bytes.sent", type: "Counter", desc: "Bytes sent", tp: ["sent", `sum(rate(alloydb_connector_bytes_sent_total{${F}}${R}))`], panels: [] },
+  { id: "bytes.received", name: "alloydb.connector.bytes.received", type: "Counter", desc: "Bytes received", tp: ["received", `sum(rate(alloydb_connector_bytes_received_total{${F}}${R}))`], panels: [] },
+  { id: "refresh.count", name: "alloydb.connector.refresh.count", type: "Counter", desc: "Cert + metadata refreshes",
+    panels: [{ k: "ts", t: "Connection-info refreshes", e: `sum by (alloydb_status, alloydb_refresh_type) (rate(alloydb_connector_refresh_count_total{${F}}${R}))`, l: "{{alloydb_status}} / {{alloydb_refresh_type}}", u: "ops" }] },
+];
+
+const state = new Set(METRICS.map(m => m.id));
+let tab = "go";
+const $ = s => document.querySelector(s);
+
+function panelsFor() {
+  const sel = METRICS.filter(m => state.has(m.id));
+  const out = sel.flatMap(m => m.panels);
+  const tp = sel.filter(m => m.tp);
+  if (tp.length) out.push({ k: "ts", t: "Throughput", u: "Bps", m: tp.map(m => m.tp) });
+  return out;
+}
+
+// Colors from the reference design. Grafana panels can't have custom card
+// backgrounds except through solid stat tiles, so charts stay on the light theme.
+const C = { navy: "#10121f", sky: "#5fb3c7", sand: "#c79a7e", orange: "#ff4f1f", teal: "#2fa8b8", red: "#c8102e", amber: "#e8a33d" };
+const SERIES = { p50: C.teal, p95: C.sand, p99: C.orange, sent: C.teal, received: C.sand, success: C.sky,
+  user_error: C.amber, cache_error: C.sand, tcp_error: C.orange, tls_error: C.red, mdx_error: C.navy };
+// Series that exist for each metric, used to fill the dashboard's filter lists.
+const PROM = { "dial.count": "alloydb_connector_dial_count_total", "dial.duration": "alloydb_connector_dial_duration_milliseconds_count",
+  "connections.open": "alloydb_connector_connections_open", "bytes.sent": "alloydb_connector_bytes_sent_total",
+  "bytes.received": "alloydb_connector_bytes_received_total", "refresh.count": "alloydb_connector_refresh_count_total" };
+
+function dashboard() {
+  const ps = panelsFor(), stats = ps.filter(p => p.k === "stat"), ts = ps.filter(p => p.k === "ts");
+  const DS = { type: "prometheus", uid: "prometheus" };
+  let id = 0, y = 0; const panels = [];
+  const targets = p => (p.m || [[p.l || "", p.e]]).map(([l, e], i) => ({ datasource: DS, expr: e, legendFormat: l, refId: String.fromCharCode(65 + i) }));
+  const tile = (p, color, pos, size) => panels.push({ id: ++id, type: "stat", title: p.t, datasource: DS, gridPos: pos, targets: targets(p),
+    fieldConfig: { defaults: { unit: p.u, color: { mode: "fixed", fixedColor: color }, thresholds: { mode: "absolute", steps: [{ color, value: null }] } }, overrides: [] },
+    options: { colorMode: "background_solid", graphMode: "none", justifyMode: "center", textMode: "value",
+      reduceOptions: { calcs: ["lastNotNull"], fields: "", values: false }, text: { valueSize: size } } });
+  const chart = (p, pos) => panels.push({ id: ++id, type: "timeseries", title: p.t, datasource: DS, gridPos: pos, targets: targets(p),
+    fieldConfig: { defaults: { unit: p.u, color: { mode: "palette-classic" },
+        custom: { lineInterpolation: "smooth", lineWidth: 2, fillOpacity: 30, gradientMode: "opacity", showPoints: "never", axisGridShow: false, axisBorderShow: false } },
+      overrides: Object.entries(SERIES).map(([name, fixedColor]) => ({ matcher: { id: "byName", options: name },
+        properties: [{ id: "color", value: { mode: "fixed", fixedColor } }] })) },
+    options: { legend: { displayMode: "list", placement: "bottom", calcs: [] }, tooltip: { mode: "multi", sort: "desc" } } });
+
+  // Reference layout: dark lead card + hero chart, then a row of tiles, then the rest.
+  const lead = stats.find(p => p.t === "Dial success ratio") || stats[0];
+  const rest = stats.filter(p => p !== lead), [hero, ...others] = ts;
+  if (lead && hero) {
+    tile(lead, C.navy, { x: 0, y, w: 8, h: 10 }, 72);
+    chart(hero, { x: 8, y, w: 16, h: 10 }); y += 10;
+  } else if (lead) { tile(lead, C.navy, { x: 0, y, w: 24, h: 6 }, 72); y += 6; }
+  else if (hero) { chart(hero, { x: 0, y, w: 24, h: 10 }); y += 10; }
+  const tones = [C.sand, C.sky, C.orange];
+  rest.forEach((p, i) => { const w = Math.floor(24 / rest.length); tile(p, tones[i % 3], { x: w * i, y, w, h: 5 }, 44); });
+  if (rest.length) y += 5;
+  others.forEach((p, i) => { const solo = i === others.length - 1 && i % 2 === 0;
+    chart(p, { x: solo ? 0 : (i % 2) * 12, y: y + Math.floor(i / 2) * 8, w: solo ? 24 : 12, h: 8 }); });
+
+  const v = (name, label, q) => ({ name, label, type: "query", datasource: DS, multi: true, includeAll: true, allValue: ".*", refresh: 2,
+    current: { text: "All", value: "$__all" }, query: { query: q, refId: "v" } });
+  // Use a metric that is still selected: dropped metrics have no series.
+  const base = PROM[METRICS.find(m => state.has(m.id))?.id] || PROM["dial.count"];
+  return { uid: "alloydb-connector", title: "AlloyDB Go Connector", tags: ["alloydb", "opentelemetry"], schemaVersion: 39, version: 1,
+    editable: true, refresh: "10s", time: { from: "now-15m", to: "now" },
+    templating: { list: [v("project", "Project", `label_values(${base}, alloydb_project_id)`),
+      v("cluster", "Cluster", `label_values(${base}{alloydb_project_id=~"$project"}, alloydb_cluster_id)`),
+      v("instance", "Instance", `label_values(${base}{alloydb_cluster_id=~"$cluster"}, alloydb_instance_id)`)] },
+    panels };
+}
+
+function goSnippet() {
+  const drop = METRICS.filter(m => !state.has(m.id));
+  const views = drop.map(m => `\tsdkmetric.WithView(sdkmetric.NewView(
+\t\tsdkmetric.Instrument{Name: "${m.name}", Scope: instrumentation.Scope{Name: "${SCOPE}"}},
+\t\tsdkmetric.Stream{Aggregation: sdkmetric.AggregationDrop{}},
+\t)),`).join("\n");
+  return `// Register once at startup, before creating the Dialer.
+exporter, err := prometheus.New()
+if err != nil {
+\treturn err
+}
+provider := sdkmetric.NewMeterProvider(
+\tsdkmetric.WithReader(exporter),${drop.length ? "\n" + views : ""}
+)
+otel.SetMeterProvider(provider)
+http.Handle("/metrics", promhttp.Handler())
+defer provider.Shutdown(ctx)
+
+// Imports:
+//   go.opentelemetry.io/otel
+//   go.opentelemetry.io/otel/exporters/prometheus
+//   sdkmetric "go.opentelemetry.io/otel/sdk/metric"
+//   github.com/prometheus/client_golang/prometheus/promhttp${drop.length ? "\n//   go.opentelemetry.io/otel/sdk/instrumentation" : ""}`;
+}
+
+function render() {
+  const ps = panelsFor();
+  $("#nMetrics").textContent = state.size; $("#nPanels").textContent = ps.length;
+  const c = tab === "go" ? goSnippet() : JSON.stringify(dashboard(), null, 2);
+  $("#code").textContent = c;
+  $("#note").textContent = tab === "go"
+    ? "Unselected metrics are dropped by the app's OpenTelemetry SDK. The connector itself always records all six."
+    : "This is what the Create button sends to Grafana. You can also import it by hand (Dashboards > New > Import).";
+  $("#apply").disabled = state.size === 0;
+}
+
+const icons = { "dial.count": "↗", "dial.duration": "◔", "connections.open": "⇄", "bytes.sent": "↑", "bytes.received": "↓", "refresh.count": "⟳" };
+$("#list").innerHTML = METRICS.map(m => `<label class="row"><input type="checkbox" value="${m.id}" checked><span class="sw"></span>
+  <span class="t"><b>${icons[m.id]} ${m.id}</b><i>${m.desc}</i></span><span class="tag">${m.type}</span></label>`).join("");
+$("#list").addEventListener("change", e => { e.target.checked ? state.add(e.target.value) : state.delete(e.target.value); render(); });
+$("#tiles").innerHTML = [["alloydb.project_id", "Project"], ["alloydb.cluster_id", "Cluster"], ["alloydb.instance_id", "Instance"]]
+  .map(([a, n]) => `<div class="tile"><div class="ico">◆</div><span>${n}</span><b style="font-size:13px;letter-spacing:0;margin-top:6px">${a}</b></div>`).join("");
+document.querySelectorAll(".tabs [role=tab]").forEach(b => b.onclick = () => {
+  tab = b.dataset.t; document.querySelectorAll(".tabs [role=tab]").forEach(x => x.setAttribute("aria-selected", x === b)); render(); });
+$("#copy").onclick = async () => { await navigator.clipboard.writeText($("#code").textContent); $("#copy").textContent = "Copied"; setTimeout(() => $("#copy").textContent = "Copy", 1200); };
+$("#dl").onclick = () => { const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([$("#code").textContent], { type: "text/plain" }));
+  a.download = tab === "go" ? "otel_views.go.txt" : "alloydb-connector.json"; a.click(); };
+$("#apply").onclick = async () => {
+  const st = $("#status"); st.textContent = "Creating...";
+  try {
+    // /grafana is proxied to Grafana by the setup container (see nginx.conf).
+    const r = await fetch("/grafana/api/dashboards/db", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dashboard: dashboard(), overwrite: true }) });
+    if (!r.ok) throw new Error(`Grafana returned ${r.status}`);
+    const { url } = await r.json();
+    st.innerHTML = `Done. <a href="http://localhost:3000${url}" target="_blank" rel="noopener">Open in Grafana</a>`;
+  } catch (e) {
+    st.textContent = `Could not reach Grafana: ${e.message}. Is docker compose running, and is this page open on localhost:8080?`;
+  }
+};
+render();
+</script>
+</body>
+</html>
