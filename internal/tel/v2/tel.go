@@ -339,6 +339,7 @@ func NewMultiMetricRecorder(recorders ...MetricRecorder) MetricRecorder {
 	return MultiMetricRecorder{recorders: filtered}
 }
 
+// Shutdown shuts down each contained recorder.
 func (m MultiMetricRecorder) Shutdown(ctx context.Context) error {
 	var errs []error
 	for _, recorder := range m.recorders {
@@ -347,42 +348,49 @@ func (m MultiMetricRecorder) Shutdown(ctx context.Context) error {
 	return errors.Join(errs...)
 }
 
+// RecordBytesRxCount records received bytes with each contained recorder.
 func (m MultiMetricRecorder) RecordBytesRxCount(ctx context.Context, bytes int64, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordBytesRxCount(ctx, bytes, a)
 	}
 }
 
+// RecordBytesTxCount records sent bytes with each contained recorder.
 func (m MultiMetricRecorder) RecordBytesTxCount(ctx context.Context, bytes int64, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordBytesTxCount(ctx, bytes, a)
 	}
 }
 
+// RecordDialCount records a dial attempt with each contained recorder.
 func (m MultiMetricRecorder) RecordDialCount(ctx context.Context, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordDialCount(ctx, a)
 	}
 }
 
+// RecordDialLatency records dial latency with each contained recorder.
 func (m MultiMetricRecorder) RecordDialLatency(ctx context.Context, latencyMS int64, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordDialLatency(ctx, latencyMS, a)
 	}
 }
 
+// RecordOpenConnection records an opened connection with each contained recorder.
 func (m MultiMetricRecorder) RecordOpenConnection(ctx context.Context, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordOpenConnection(ctx, a)
 	}
 }
 
+// RecordClosedConnection records a closed connection with each contained recorder.
 func (m MultiMetricRecorder) RecordClosedConnection(ctx context.Context, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordClosedConnection(ctx, a)
 	}
 }
 
+// RecordRefreshCount records a refresh result with each contained recorder.
 func (m MultiMetricRecorder) RecordRefreshCount(ctx context.Context, a Attributes) {
 	for _, recorder := range m.recorders {
 		recorder.RecordRefreshCount(ctx, a)
